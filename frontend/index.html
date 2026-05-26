@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Sistema ISSS - Trazabilidad Total</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+    <!-- LOGIN -->
+    <div id="view-login" class="flex items-center justify-center h-screen">
+        <div class="bg-white p-8 rounded shadow-2xl w-96 text-center border-t-8 border-blue-800">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Logo_del_ISSS.svg" class="h-16 mx-auto mb-4">
+            <h2 class="text-xl font-bold mb-4">Módulo de Trazabilidad</h2>
+            <input id="email" type="email" placeholder="Correo" class="w-full border p-2 mb-2 rounded">
+            <input id="pass" type="password" placeholder="Contraseña" class="w-full border p-2 mb-4 rounded">
+            <button onclick="login()" class="w-full bg-blue-800 text-white font-bold py-2 rounded">INGRESAR</button>
+            <p class="text-[10px] mt-4 text-gray-400 font-bold">FASE 2 - UNIVERSIDAD DON BOSCO</p>
+        </div>
+    </div>
+
+    <!-- APP PRINCIPAL -->
+    <div id="view-app" class="hidden">
+        <nav class="bg-blue-900 text-white p-4 flex justify-between items-center shadow-lg">
+            <span class="font-bold tracking-widest">ISSS LOGÍSTICA</span>
+            <div class="flex items-center gap-4">
+                <span id="user-info" class="text-xs bg-blue-800 px-3 py-1 rounded-full"></span>
+                <button onclick="location.reload()" class="bg-red-600 px-2 py-1 rounded text-xs font-bold">Cerrar</button>
+            </div>
+        </nav>
+
+        <div class="p-8 max-w-5xl mx-auto">
+            
+            <!-- VISTA GERENTE -->
+            <div id="role-gerente" class="hidden">
+                <h2 class="text-2xl font-bold mb-6 text-blue-900">Dashboard Gerencial</h2>
+                <div class="bg-white p-8 rounded-xl shadow-lg border-l-8 border-blue-500 w-72">
+                    <p class="text-gray-400 font-bold text-xs uppercase">Órdenes en Sistema</p>
+                    <p id="stat-total" class="text-5xl font-black">0</p>
+                </div>
+            </div>
+
+            <!-- VISTA FARMACIA -->
+            <div id="role-farmacia" class="hidden">
+                <h2 class="text-2xl font-bold mb-6">Módulo de Despacho</h2>
+                <div class="bg-white p-8 rounded-xl shadow-lg max-w-md">
+                    <h3 class="font-bold mb-4 text-gray-600">Crear Nueva Orden Digital</h3>
+                    <label class="text-xs font-bold">ID UNIDAD DESTINO:</label>
+                    <input id="dest-id" type="number" value="2" class="w-full border p-2 mb-4 rounded">
+                    <label class="text-xs font-bold">ID TRANSPORTISTA ASIGNADO:</label>
+                    <input id="trans-id" type="number" value="2" class="w-full border p-2 mb-6 rounded">
+                    <button onclick="crearOrden()" class="bg-green-600 text-white w-full py-3 rounded-lg font-bold shadow-md">GENERAR CÓDIGO TRZ</button>
+                </div>
+            </div>
+
+            <!-- VISTA TRANSPORTISTA (NUEVA!) -->
+            <div id="role-transportista" class="hidden">
+                <h2 class="text-2xl font-bold mb-6 text-orange-600">Órdenes Asignadas</h2>
+                <div id="lista-transp" class="grid gap-4"></div>
+            </div>
+
+            <!-- VISTA RECEPTOR (NUEVA!) -->
+            <div id="role-receptor" class="hidden">
+                <h2 class="text-2xl font-bold mb-6 text-green-700">Confirmación de Recepción Digital</h2>
+                <div id="lista-receptor" class="grid gap-4"></div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const API = "http://localhost:3000/api";
+        let user = null;
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('pass').value;
+            const res = await fetch(`${API}/login`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, password: pass })
+            });
+
+            if(res.ok) {
+                user = await res.json();
+                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('view-app').classList.remove('hidden');
+                document.getElementById('user-info').innerText = `${user.nombre_completo} | ${user.nombre_rol}`;
+                
+                if(user.nombre_rol === 'GERENTE') { document.getElementById('role-gerente').classList.remove('hidden'); cargarStats(); }
+                if(user.nombre_rol === 'FARMACIA') { document.getElementById('role-farmacia').classList.remove('hidden'); }
+                if(user.nombre_rol === 'TRANSPORTISTA') { document.getElementById('role-transportista').classList.remove('hidden'); cargarOrdenes(); }
+                if(user.nombre_rol === 'RECEPTOR') { document.getElementById('role-receptor').classList.remove('hidden'); cargarOrdenes(); }
+            } else { alert("Credenciales Incorrectas"); }
+        }
+
+        async function cargarOrdenes() {
+            const res = await fetch(`${API}/ordenes/${user.nombre_rol}/${user.id}`);
+            const ordenes = await res.json();
+            const container = user.nombre_rol === 'TRANSPORTISTA' ? 'lista-transp' : 'lista-receptor';
+            const btnColor = user.nombre_rol === 'TRANSPORTISTA' ? 'bg-orange-500' : 'bg-green-600';
+            const btnText = user.nombre_rol === 'TRANSPORTISTA' ? 'MARCAR: EN RUTA' : 'CONFIRMAR RECEPCIÓN';
+            const nextEstado = user.nombre_rol === 'TRANSPORTISTA' ? 2 : 3;
+
+            document.getElementById(container).innerHTML = ordenes.map(o => `
+                <div class="bg-white p-6 rounded-lg shadow flex justify-between items-center border-l-4 border-gray-300">
+                    <div>
+                        <p class="text-xs font-bold text-gray-400">${o.codigo_trz}</p>
+                        <p class="font-bold text-lg">Estado: ${o.nombre_estado}</p>
+                    </div>
+                    <button onclick="cambiarEstado(${o.id}, ${nextEstado})" class="${btnColor} text-white px-4 py-2 rounded-lg font-bold text-sm shadow">${btnText}</button>
+                </div>
+            `).join('');
+        }
+
+        async function cambiarEstado(id, nuevo) {
+            await fetch(`${API}/ordenes/estado`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ orden_id: id, nuevo_estado_id: nuevo })
+            });
+            alert("Estado Actualizado Correctamente");
+            cargarOrdenes();
+        }
+
+        // Funciones previas (Estadísticas y Crear Orden)
+        async function cargarStats() {
+            const res = await fetch(`${API}/stats`);
+            const data = await res.json();
+            document.getElementById('stat-total').innerText = data.total;
+        }
+
+        async function crearOrden() {
+            const res = await fetch(`${API}/ordenes`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    destino_id: document.getElementById('dest-id').value,
+                    transportista_id: document.getElementById('trans-id').value,
+                    creador_id: user.id
+                })
+            });
+            const data = await res.json();
+            alert("ORDEN CREADA: " + data.codigo_trz);
+        }
+    </script>
+</body>
+</html>
