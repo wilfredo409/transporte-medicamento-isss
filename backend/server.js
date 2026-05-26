@@ -1,14 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
-
+// pass database 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 // RECUERDA: Cambia esto por tu cadena de conexión de Supabase
 const pool = new Pool({
-  connectionString: "TU_CADENA_DE_CONEXION_DE_SUPABASE" 
+  connectionString: "postgresql://postgres:$eS-V.ckKK7QvK$@db.gmaaevtlicykhjputkcd.supabase.co:5432/postgres" 
 });
 
 // 1. LOGIN
