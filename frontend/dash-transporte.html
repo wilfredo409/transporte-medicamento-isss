@@ -39,7 +39,7 @@
         document.getElementById('display-name').innerText = user.nombre_completo;
 
         async function loadRutas() {
-            const res = await fetch(`/api/ordenes/lista/TRANSPORTISTA/${user.id}`);
+            const res = await fetch(`https://transporte-medicamento-isss.onrender.com/api/ordenes/lista/TRANSPORTISTA/${user.id}`);
             const data = await res.json();
             
             document.getElementById('grid-rutas').innerHTML = data.map(o => {
@@ -67,7 +67,7 @@
         }
 
         async function actualizarEstado(id, eid, nombre) {
-            await fetch('/api/ordenes/estado', {
+            await fetch('https://transporte-medicamento-isss.onrender.com/api/ordenes/estado', {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ orden_id: id, nuevo_estado_id: eid, nombre_estado: nombre })

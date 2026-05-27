@@ -56,7 +56,7 @@
         let carrito = [];
 
         async function init() {
-            const r = await fetch('/api/catalogos');
+            const r = await fetch('https://transporte-medicamento-isss.onrender.com/api/catalogos');
             const d = await r.json();
             document.getElementById('sel-unidades').innerHTML = d.unidades.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
             document.getElementById('sel-trans').innerHTML = d.transportistas.map(t => `<option value="${t.id}">${t.nombre_completo}</option>`).join('');
@@ -76,7 +76,7 @@
         }
 
         async function enviar() {
-            await fetch('/api/ordenes', {
+            await fetch('https://transporte-medicamento-isss.onrender.com/api/ordenes', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ destino_id: document.getElementById('sel-unidades').value, transportista_id: document.getElementById('sel-trans').value, creador_id: user.id, productos: carrito })
@@ -86,7 +86,7 @@
         }
 
         async function loadPedidos() {
-            const r = await fetch(`/api/ordenes/lista/FARMACIA/${user.id}`);
+            const r = await fetch(`https://transporte-medicamento-isss.onrender.com/api/ordenes/lista/FARMACIA/${user.id}`);
             const data = await r.json();
             document.getElementById('grid-pedidos').innerHTML = data.map(o => `
                 <div class="bg-white p-4 rounded shadow border-l-4 border-blue-900">

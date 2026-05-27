@@ -35,7 +35,7 @@
 
         async function loadPedidos() {
             // El receptor ve lo que está "EN RUTA" (estado 2)
-            const res = await fetch(`/api/ordenes/lista/RECEPTOR/${user.id}`);
+            const res = await fetch(`https://transporte-medicamento-isss.onrender.com/api/ordenes/lista/RECEPTOR/${user.id}`);
             const data = await res.json();
             
             // Filtramos solo los que están en ruta para recibirlos
@@ -75,7 +75,7 @@
             const firma = document.getElementById(`firma-${id}`).value;
             if(!firma) return alert("Debe ingresar el nombre de la persona que recibe para la auditoría.");
 
-            await fetch('/api/ordenes/estado', {
+            await fetch('https://transporte-medicamento-isss.onrender.com/api/ordenes/estado', {
                 method: 'PUT',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ 
