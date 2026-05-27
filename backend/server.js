@@ -22,31 +22,35 @@ pool.query('SELECT NOW()', (err, res) => {
 });
 
 app.post('/api/login', async (req, res) => {
+    // 1. Verificamos que los datos lleguen al servidor
     const { email, password } = req.body;
-    
-    // Log para ver qué llega (Esto lo verás en la pestaña LOGS de Render)
-    console.log(`Intentando login para: ${email}`);
+    console.log("Datos recibidos en el servidor:", email, password);
+
+    if (!email || !password) {
+        return res.status(400).json({ error: "Faltan datos de usuario o clave" });
+    }
 
     try {
-        // Usamos LOWER() para que no importe si escriben con mayúsculas
+        // 2. Intentamos la consulta
+        // IMPORTANTE: Asegúrate de que los nombres de las tablas coincidan con Supabase
         const query = `
-            SELECT usuarios.*, roles.nombre_rol 
-            FROM usuarios 
-            JOIN roles ON usuarios.role_id = roles.id 
-            WHERE LOWER(email) = LOWER($1) AND password_text = $2
+            SELECT u.id, u.nombre_completo, u.email, r.nombre_rol 
+            FROM usuarios u
+            INNER JOIN roles r ON u.role_id = r.id 
+            WHERE LOWER(u.email) = LOWER($1) AND u.password_text = $2
         `;
-        const user = await pool.query(query, [email, password]);
+        
+        const result = await pool.query(query, [email, password]);
 
-        if (user.rows.length > 0) {
-            console.log("✅ Usuario encontrado:", user.rows[0].nombre_completo);
-            res.json(user.rows[0]);
+        if (result.rows.length > 0) {
+            res.json(result.rows[0]);
         } else {
-            console.log("⚠️ Credenciales no coinciden en la base de datos");
-            res.status(401).json({ error: "El correo o la contraseña no existen en el sistema" });
+            res.status(401).json({ error: "Correo o contraseña no válidos" });
         }
     } catch (err) {
-        console.error("❌ Error en la consulta SQL:", err.message);
-        res.status(500).json({ error: "Error interno del servidor: " + err.message });
+        // 3. Si falla, el servidor nos dirá EXACTAMENTE por qué en los Logs de Render
+        console.error("DETALLE DEL ERROR EN DB:", err.message);
+        res.status(500).json({ error: "Error en la base de datos: " + err.message });
     }
 });
 
