@@ -2,92 +2,152 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>ISSS Trazabilidad Digital</title>
+    <title>Dashboard Gerencial - ISSS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-slate-100 min-h-screen font-sans">
+<body class="bg-slate-100 flex h-screen overflow-hidden">
 
-    <!-- LOGIN -->
-    <div id="view-login" class="flex items-center justify-center h-screen bg-gradient-to-br from-blue-900 to-blue-700">
-        <div class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md">
-            <img src="https://www.isss.gob.sv/wp-content/uploads/2021/04/logo-isss.png" class="h-20 mx-auto mb-6">
-            <h1 class="text-2xl font-bold text-center text-gray-800 mb-8">Sistema de Trazabilidad</h1>
-            <div class="space-y-4">
-                <input id="email" type="email" placeholder="Usuario Institucional" class="w-full border-2 p-3 rounded-xl focus:border-blue-500 outline-none">
-                <input id="pass" type="password" placeholder="Contraseña" class="w-full border-2 p-3 rounded-xl focus:border-blue-500 outline-none">
-                <button onclick="login()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg uppercase">Entrar al Sistema</button>
+    <!-- LOGIN (Igual al de la captura) -->
+    <div id="view-login" class="fixed inset-0 z-50 bg-[#f0f4f8] flex items-center justify-center">
+        <div class="bg-white rounded-xl shadow-2xl w-[450px] overflow-hidden border">
+            <div class="bg-[#1e3a8a] p-6 text-white text-center">
+                <i class="fas fa-hospital-symbol text-3xl mb-2"></i>
+                <h1 class="text-xl font-bold uppercase tracking-widest">ISSS</h1>
+                <p class="text-xs opacity-80">Sistema de Trazabilidad de Medicamentos</p>
+            </div>
+            <div class="p-10 space-y-6 text-center">
+                <h2 class="text-2xl font-bold text-slate-700">Iniciar Sesión</h2>
+                <input id="email" type="email" placeholder="Usuario / Correo Electrónico" class="w-full border p-4 rounded-lg focus:ring-2 ring-blue-500 outline-none">
+                <input id="pass" type="password" placeholder="Contraseña" class="w-full border p-4 rounded-lg focus:ring-2 ring-blue-500 outline-none">
+                <button onclick="login()" class="w-full bg-[#1e3a8a] text-white py-4 rounded-lg font-bold hover:bg-blue-800 transition shadow-lg uppercase">Ingresar al Sistema</button>
+                <div class="text-[10px] text-slate-400 font-bold uppercase pt-4 border-t">Acceso disponible para: Farmacéutico | Transportista | Receptor | Gerente</div>
             </div>
         </div>
     </div>
 
-    <!-- MAIN APP -->
-    <div id="view-app" class="hidden">
-        <nav class="bg-white border-b p-4 flex justify-between items-center px-8 shadow-sm">
-            <div class="flex items-center gap-3">
-                <img src="https://cdn-icons-png.flaticon.com/512/822/822143.png" class="h-8">
-                <span class="font-black text-blue-900 tracking-tighter text-xl italic">ISSS LOGÍSTICA</span>
-            </div>
-            <div class="flex items-center gap-6">
-                <div class="text-right">
-                    <p id="user-name" class="font-bold text-gray-800 leading-none"></p>
-                    <span id="user-role" class="text-xs text-blue-600 font-bold uppercase tracking-widest"></span>
-                </div>
-                <button onclick="location.reload()" class="bg-red-50 text-red-600 p-2 rounded-full hover:bg-red-100"><i class="fas fa-sign-out-alt"></i></button>
-            </div>
+    <!-- SIDEBAR (Captura 1) -->
+    <aside id="sidebar" class="hidden w-64 bg-[#1e293b] text-slate-300 flex-shrink-0 flex flex-col">
+        <div class="p-6 bg-[#0f172a] text-white font-black text-xl italic flex items-center gap-2">
+            <div class="w-6 h-6 border-2 border-white"></div> ISSS Logística
+        </div>
+        <nav class="flex-1 mt-4">
+            <p class="px-6 text-[10px] font-bold text-slate-500 uppercase mb-2">Navegación</p>
+            <a href="#" onclick="showSection('dash')" class="flex items-center gap-3 px-6 py-4 bg-blue-600 text-white"><i class="fas fa-th-large"></i> Dashboard</a>
+            <p class="px-6 text-[10px] font-bold text-slate-500 uppercase mt-4 mb-2">Órdenes de Envío</p>
+            <a href="#" onclick="showSection('lista')" class="flex items-center gap-3 px-6 py-3 hover:bg-slate-800"><i class="fas fa-truck"></i> En Tránsito</a>
+            <a href="#" class="flex items-center gap-3 px-6 py-3 hover:bg-slate-800"><i class="fas fa-check-double"></i> Entregas Hoy</a>
+            <a href="#" onclick="showSection('admin')" class="flex items-center gap-3 px-6 py-3 hover:bg-slate-800"><i class="fas fa-user-shield"></i> Usuarios</a>
+            <a href="#" class="flex items-center gap-3 px-6 py-3 hover:bg-slate-800"><i class="fas fa-file-alt"></i> Reportes</a>
         </nav>
+        <div class="p-4 border-t border-slate-700">
+            <button onclick="location.reload()" class="flex items-center gap-2 text-xs hover:text-white"><i class="fas fa-sign-out-alt"></i> Cerrar Sesión</button>
+        </div>
+    </aside>
 
-        <main class="p-8 max-w-6xl mx-auto">
-            
-            <!-- SECCION FARMACIA -->
-            <div id="role-farmacia" class="hidden space-y-6">
-                <h2 class="text-3xl font-bold text-gray-800">Despacho de Medicamentos</h2>
-                <div class="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="space-y-4">
-                        <label class="block font-bold text-gray-600 text-sm">NÚMERO DE PEDIDO / REQUISICIÓN</label>
-                        <input id="num-pedido" type="text" placeholder="Ej: PED-2026-001" class="w-full border-2 p-3 rounded-xl">
-                        
-                        <label class="block font-bold text-gray-600 text-sm">UNIDAD MÉDICA DESTINO</label>
-                        <select id="select-unidades" class="w-full border-2 p-3 rounded-xl bg-gray-50"></select>
+    <!-- CONTENT -->
+    <main id="view-app" class="hidden flex-1 flex flex-col overflow-hidden">
+        <header class="bg-[#1e3a8a] text-white p-4 flex justify-between items-center shadow-md">
+            <div class="flex items-center gap-4">
+                <i class="fas fa-bars cursor-pointer"></i>
+                <h2 id="section-title" class="font-bold uppercase tracking-tighter">Panel de Control</h2>
+            </div>
+            <div class="flex items-center gap-3">
+                <span id="user-display" class="text-xs font-bold bg-blue-900 px-4 py-2 rounded-full"></span>
+                <div id="user-avatar" class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center font-bold"></div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-8 space-y-8">
+            <!-- DASHBOARD MULTI-ESTADO (GERENTE) -->
+            <div id="sec-dash" class="hidden space-y-8">
+                <div class="grid grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                        <p class="text-xs font-bold text-slate-400 uppercase">Preparación</p>
+                        <p id="cnt-prep" class="text-4xl font-black">0</p>
                     </div>
-                    <div class="space-y-4">
-                        <label class="block font-bold text-gray-600 text-sm">TRANSPORTISTA ASIGNADO</label>
-                        <select id="select-trans" class="w-full border-2 p-3 rounded-xl bg-gray-50"></select>
-                        
-                        <div class="pt-8">
-                            <button onclick="crearOrden()" class="w-full bg-green-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-green-700 transition-all">GENERAR GUÍA DIGITAL TRZ</button>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-orange-500">
+                        <p class="text-xs font-bold text-slate-400 uppercase">En Ruta</p>
+                        <p id="cnt-ruta" class="text-4xl font-black">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                        <p class="text-xs font-bold text-slate-400 uppercase">Entregados</p>
+                        <p id="cnt-fin" class="text-4xl font-black">0</p>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-red-500">
+                        <p class="text-xs font-bold text-slate-400 uppercase">Incidencias</p>
+                        <p class="text-4xl font-black">0</p>
+                    </div>
+                </div>
+
+                <div id="gerente-vistas" class="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                    <!-- Columnas de estados se llenan vía JS -->
+                </div>
+            </div>
+
+            <!-- FORMULARIO DESPACHO (Captura 3) -->
+            <div id="sec-farmacia" class="hidden">
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden border">
+                    <div class="bg-slate-50 p-6 border-b flex justify-between items-center">
+                        <h3 class="text-lg font-bold text-slate-700"><i class="fas fa-plus-circle text-blue-600 mr-2"></i> Crear Orden de Envío de Medicamentos</h3>
+                        <span class="text-xs font-bold text-blue-600">PASO 1: Información General</span>
+                    </div>
+                    <div class="p-10 space-y-8">
+                        <div class="grid grid-cols-2 gap-8">
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-400 uppercase">Unidad Médica Destino *</label>
+                                <select id="sel-unidades" class="w-full border-2 p-3 rounded-lg bg-slate-50 font-bold"></select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] font-black text-slate-400 uppercase">Transportista Asignado *</label>
+                                <select id="sel-trans" class="w-full border-2 p-3 rounded-lg bg-slate-50 font-bold"></select>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <p class="text-xs font-black text-slate-700 border-b pb-2">DETALLE DE MEDICAMENTOS</p>
+                            <div class="flex gap-4">
+                                <select id="sel-med" class="flex-1 border p-3 rounded-lg"></select>
+                                <input id="inp-cant" type="number" placeholder="Cant." class="w-24 border p-3 rounded-lg">
+                                <button onclick="agregarAlCarrito()" class="bg-blue-600 text-white px-6 rounded-lg font-bold">+ AGREGAR</button>
+                            </div>
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-100 uppercase text-[10px] font-bold">
+                                    <tr><th class="p-3">Medicamento</th><th class="p-3">Cantidad</th><th class="p-3">Cadena Frío</th><th class="p-3">Acción</th></tr>
+                                </thead>
+                                <tbody id="tab-carrito"></tbody>
+                            </table>
+                        </div>
+                        <div class="flex justify-end pt-6 border-t gap-4">
+                            <button class="px-8 py-3 font-bold text-slate-500 hover:underline">CANCELAR</button>
+                            <button onclick="finalizarOrden()" class="bg-[#1e3a8a] text-white px-10 py-4 rounded-xl font-black shadow-lg hover:bg-blue-900">CREAR ORDEN DIGITAL</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- SECCION TRANSPORTISTA / RECEPTOR -->
-            <div id="role-lista" class="hidden space-y-6">
-                <h2 id="lista-titulo" class="text-3xl font-bold text-gray-800">Cargamento en Proceso</h2>
-                <div id="contenedor-ordenes" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            <!-- VISTA LISTADO DINÁMICO (Transportista/Receptor) -->
+            <div id="sec-lista" class="hidden">
+                <div id="grid-ordenes" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
             </div>
 
-            <!-- SECCION GERENTE -->
-            <div id="role-gerente" class="hidden space-y-8">
-                <h2 class="text-3xl font-bold text-gray-800">Indicadores Clave (KPIs)</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div class="bg-white p-8 rounded-3xl shadow-xl border-t-8 border-blue-600">
-                        <p class="text-gray-400 font-bold text-xs uppercase mb-2">Total Despachos</p>
-                        <p id="stat-total" class="text-6xl font-black text-gray-800">0</p>
-                    </div>
-                    <div class="bg-white p-8 rounded-3xl shadow-xl border-t-8 border-orange-500">
-                        <p class="text-gray-400 font-bold text-xs uppercase mb-2">Pedidos en Ruta</p>
-                        <p id="stat-ruta" class="text-6xl font-black text-gray-800">0</p>
-                    </div>
-                </div>
+            <!-- ADMIN PANEL -->
+            <div id="sec-admin" class="hidden bg-white p-8 rounded-xl shadow-lg">
+                <h2 class="text-2xl font-bold mb-6">Gestión de Usuarios</h2>
+                <table class="w-full text-left border-collapse">
+                    <thead><tr class="bg-slate-100 text-xs uppercase font-bold">
+                        <th class="p-3">Nombre</th><th class="p-3">Email</th><th class="p-3">Rol</th><th class="p-3">Acciones</th>
+                    </tr></thead>
+                    <tbody id="tab-usuarios"></tbody>
+                </table>
             </div>
-
-        </main>
-    </div>
+        </div>
+    </main>
 
     <script>
-        const API = "https://transporte-medicamento-isss.onrender.com/api"; // CAMBIA POR TU URL
+        const API = "https://tu-servidor-render.com/api"; // CAMBIAR POR TU URL
         let user = null;
+        let carrito = [];
 
         async function login() {
             const res = await fetch(`${API}/login`, {
@@ -97,80 +157,79 @@
             });
             if(res.ok) {
                 user = await res.json();
-                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('view-login').style.display = 'none';
+                document.getElementById('sidebar').classList.remove('hidden');
                 document.getElementById('view-app').classList.remove('hidden');
-                document.getElementById('user-name').innerText = user.nombre_completo;
-                document.getElementById('user-role').innerText = user.nombre_rol;
-                
-                if(user.nombre_rol === 'FARMACIA') { cargarCatalogos(); document.getElementById('role-farmacia').classList.remove('hidden'); }
-                if(user.nombre_rol === 'TRANSPORTISTA' || user.nombre_rol === 'RECEPTOR') { 
-                    document.getElementById('role-lista').classList.remove('hidden'); 
-                    document.getElementById('lista-titulo').innerText = user.nombre_rol === 'TRANSPORTISTA' ? 'Mis Rutas Asignadas' : 'Pedidos por Recibir';
-                    cargarOrdenes(); 
-                }
-                if(user.nombre_rol === 'GERENTE') { document.getElementById('role-gerente').classList.remove('hidden'); cargarStats(); }
-            } else { alert("Error de acceso"); }
+                document.getElementById('user-display').innerText = user.nombre_completo;
+                document.getElementById('user-avatar').innerText = user.nombre_completo.split(' ').map(n => n[0]).join('');
+                cargarCatalogos();
+                showSection('dash');
+            } else { alert("Credenciales Incorrectas"); }
         }
 
         async function cargarCatalogos() {
             const res = await fetch(`${API}/catalogos`);
             const data = await res.json();
-            document.getElementById('select-unidades').innerHTML = data.unidades.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
-            document.getElementById('select-trans').innerHTML = data.transportistas.map(t => `<option value="${t.id}">${t.nombre_completo}</option>`).join('');
+            // Llenar selects... (Lógica básica)
         }
 
-        async function crearOrden() {
-            const res = await fetch(`${API}/ordenes`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    numero_pedido: document.getElementById('num-pedido').value,
-                    destino_id: document.getElementById('select-unidades').value,
-                    transportista_id: document.getElementById('select-trans').value,
-                    creador_id: user.id
-                })
-            });
-            const data = await res.json();
-            alert("¡ÉXITO! Guía Generada: " + data.codigo_trz);
-            document.getElementById('num-pedido').value = "";
+        function showSection(sec) {
+            ['sec-dash', 'sec-farmacia', 'sec-lista', 'sec-admin'].forEach(s => document.getElementById(s).classList.add('hidden'));
+            
+            if(sec === 'dash') {
+                if(user.role_id === 1) document.getElementById('sec-farmacia').classList.remove('hidden');
+                else if(user.role_id === 4 || user.role_id === 5) {
+                    document.getElementById('sec-dash').classList.remove('hidden');
+                    cargarReporteGerente();
+                } else {
+                    document.getElementById('sec-lista').classList.remove('hidden');
+                    cargarListaOrdenes();
+                }
+            } else if(sec === 'admin' && user.role_id === 5) {
+                document.getElementById('sec-admin').classList.remove('hidden');
+            } else {
+                document.getElementById('sec-lista').classList.remove('hidden');
+                cargarListaOrdenes();
+            }
         }
 
-        async function cargarOrdenes() {
-            const res = await fetch(`${API}/ordenes/lista/${user.nombre_rol}/${user.id}`);
-            const data = await res.json();
-            const btnColor = user.nombre_rol === 'TRANSPORTISTA' ? 'bg-orange-500' : 'bg-green-600';
-            const btnText = user.nombre_rol === 'TRANSPORTISTA' ? 'INICIAR RUTA' : 'CONFIRMAR ENTREGA';
-            const nextEstado = user.nombre_rol === 'TRANSPORTISTA' ? 2 : 3;
+        async function cargarReporteGerente() {
+            const res = await fetch(`${API}/ordenes/reporte/GERENTE/0`);
+            const ordenes = await res.json();
+            
+            const cols = { 1: [], 2: [], 3: [], 4: [] };
+            ordenes.forEach(o => cols[o.estado_id].push(o));
+            
+            // Actualizar contadores
+            document.getElementById('cnt-prep').innerText = cols[1].length;
+            document.getElementById('cnt-ruta').innerText = cols[2].length;
+            document.getElementById('cnt-fin').innerText = cols[3].length;
 
-            document.getElementById('contenedor-ordenes').innerHTML = data.map(o => `
-                <div class="bg-white p-6 rounded-3xl shadow-lg border-l-8 border-blue-900">
-                    <div class="flex justify-between mb-4">
-                        <span class="text-xs font-black text-blue-900 bg-blue-50 px-3 py-1 rounded-full uppercase">${o.codigo_trz}</span>
-                        <span class="text-xs font-bold text-gray-400">PEDIDO: ${o.numero_pedido}</span>
-                    </div>
-                    <p class="text-sm text-gray-500 font-bold uppercase mb-1">Destino:</p>
-                    <p class="font-black text-gray-800 mb-4">${o.unidad_nombre}</p>
-                    <button onclick="cambiarEstado(${o.id}, ${nextEstado})" class="w-full ${btnColor} text-white py-3 rounded-2xl font-bold shadow-md hover:opacity-90">${btnText}</button>
+            const html = Object.keys(cols).map(eid => `
+                <div class="space-y-4">
+                    <p class="text-[10px] font-black uppercase text-slate-500 border-b pb-2">Estado: ${eid}</p>
+                    ${cols[eid].map(o => crearCardOrden(o, true)).join('')}
                 </div>
             `).join('');
+            document.getElementById('gerente-vistas').innerHTML = html;
         }
 
-        async function cambiarEstado(id, nuevo) {
-            await fetch(`${API}/ordenes/estado`, {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ orden_id: id, nuevo_estado_id: nuevo })
-            });
-            alert("Estado de pedido actualizado");
-            cargarOrdenes();
+        function crearCardOrden(o, esGerente = false) {
+            const tieneFrio = o.productos.some(p => p.frio);
+            return `
+                <div class="bg-white p-5 rounded-xl shadow-md border-l-8 ${o.estado_id === 2 ? 'border-orange-500' : 'border-blue-800'} relative">
+                    ${tieneFrio ? '<div class="absolute top-2 right-2 text-blue-500 animate-pulse"><i class="fas fa-snowflake"></i> FRÍO</div>' : ''}
+                    <div class="text-[10px] font-black text-slate-400 mb-2 uppercase">${o.codigo_trz} | PEDIDO: ${o.numero_pedido}</div>
+                    <p class="text-sm font-bold text-slate-800">${o.destino_nombre}</p>
+                    <div class="text-[9px] mt-2 bg-slate-100 p-2 rounded">
+                        ${o.productos.map(p => `• ${p.nombre} (${p.cantidad})`).join('<br>')}
+                    </div>
+                    ${!esGerente ? `<button onclick="actualizar(${o.id}, ${o.estado_id})" class="mt-4 w-full bg-blue-600 text-white text-[10px] font-bold py-2 rounded">${o.estado_id === 1 ? 'INICIAR RUTA' : 'CONFIRMAR ENTREGA'}</button>` : ''}
+                </div>
+            `;
         }
-
-        async function cargarStats() {
-            const res = await fetch(`${API}/stats`);
-            const data = await res.json();
-            document.getElementById('stat-total').innerText = data.total;
-            document.getElementById('stat-ruta').innerText = data.en_ruta;
-        }
+        
+        // Agregar funciones de auditoría y cambio de estado...
     </script>
 </body>
 </html>
