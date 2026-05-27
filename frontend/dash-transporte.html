@@ -41,7 +41,9 @@
         async function loadRutas() {
             const res = await fetch(`https://transporte-medicamento-isss.onrender.com/api/ordenes/lista/TRANSPORTISTA/${user.id}`);
             const data = await res.json();
-            
+            if (document.getElementById('grid-rutas')== null){
+                `  <p class="font-black text-gray-800 text-lg mb-4 leading-tight">No hay pedidos disponibles</p>     `
+            }else{
             document.getElementById('grid-rutas').innerHTML = data.map(o => {
                 const tieneFrio = o.productos.some(p => p.frio);
                 const esEnRuta = o.estado_id === 2;
@@ -64,7 +66,7 @@
                     }
                 </div>`;
             }).join('');
-        }
+        }}
 
         async function actualizarEstado(id, eid, nombre) {
             await fetch('https://transporte-medicamento-isss.onrender.com/api/ordenes/estado', {

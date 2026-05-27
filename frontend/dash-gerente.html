@@ -2,52 +2,228 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Gerencia ISSS</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Gerencial ISSS – Trazabilidad Real</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .sidebar-dark { background-color: #1e293b; }
+        .sidebar-header { background-color: #0f172a; }
+        .isss-blue { background-color: #1e3a8a; }
+        .menu-link { transition: all 0.3s; cursor: pointer; border-radius: 8px; margin: 0 12px; }
+        .menu-link:hover { background-color: #334155; color: white; }
+        .active-link { background-color: #2563eb !important; color: white !important; }
+        .section-content { display: none; }
+        .active-section { display: block; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
 </head>
-<body class="bg-slate-100 p-8">
-    <header class="flex justify-between items-center mb-8">
-        <h1 class="text-2xl font-black text-slate-800 uppercase">Dashboard Gerencial de Trazabilidad</h1>
-        <button onclick="location.href='index.html'" class="bg-red-500 text-white px-4 py-2 rounded">Salir</button>
-    </header>
+<body class="bg-[#f0f4f8] flex h-screen font-sans overflow-hidden">
 
-    <div class="grid grid-cols-3 gap-8">
-        <div class="space-y-4">
-            <h2 class="font-bold text-blue-900 border-b-4 border-blue-900 pb-2">PREPARACIÓN</h2>
-            <div id="col-1" class="space-y-4"></div>
+    <!-- SIDEBAR -->
+    <aside class="w-72 sidebar-dark text-slate-300 flex flex-col shadow-2xl z-20">
+        <div class="p-6 sidebar-header text-white font-black text-xl italic flex items-center gap-3 border-b border-slate-700">
+            <div class="w-6 h-6 border-2 border-white"></div> ISSS — Trazabilidad
         </div>
-        <div class="space-y-4">
-            <h2 class="font-bold text-orange-600 border-b-4 border-orange-600 pb-2">EN RUTA</h2>
-            <div id="col-2" class="space-y-4"></div>
+        <nav class="flex-1 mt-6 space-y-1">
+            <p class="px-8 text-[10px] font-bold text-slate-500 uppercase mb-4 tracking-widest">Navegación</p>
+            <div onclick="showSection('dashboard', this)" class="menu-link active-link flex items-center gap-4 px-6 py-3">
+                <i class="fas fa-th-large"></i> Dashboard
+            </div>
+            <div class="pt-4 pb-2"><p class="px-8 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Órdenes de Envío</p></div>
+            <div onclick="showSection('transito', this)" class="menu-link flex items-center gap-4 px-8 py-3"><i class="fas fa-truck text-xs"></i> En Tránsito</div>
+            <div onclick="showSection('entregas', this)" class="menu-link flex items-center gap-4 px-8 py-3"><i class="fas fa-check-double text-xs"></i> Entregas Hoy</div>
+            <div onclick="showSection('incidencias', this)" class="menu-link flex items-center gap-4 px-8 py-3"><i class="fas fa-exclamation-circle text-xs"></i> Incidencias</div>
+            <div class="pt-4 pb-2"><p class="px-8 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Administración</p></div>
+            <div onclick="showSection('usuarios', this)" class="menu-link flex items-center gap-4 px-8 py-3"><i class="fas fa-users"></i> Usuarios</div>
+        </nav>
+        <div class="p-6 border-t border-slate-700"><button onclick="location.href='index.html'" class="text-red-400 font-bold text-xs uppercase tracking-tighter"><i class="fas fa-sign-out-alt mr-2"></i> Salir del Sistema</button></div>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-hidden">
+        <!-- HEADER -->
+        <header class="isss-blue text-white p-4 flex justify-between items-center shadow-md">
+            <h2 id="current-title" class="font-bold uppercase tracking-tighter text-sm">Dashboard Gerencial</h2>
+            <div class="flex items-center gap-4">
+                <div class="bg-blue-900 px-4 py-1 rounded-full border border-blue-400 flex items-center gap-3">
+                    <div class="w-7 h-7 rounded-full bg-blue-500 flex items-center justify-center font-bold text-xs uppercase">GM</div>
+                    <span class="text-[10px] font-bold">Gerente Miranda</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- CONTENIDO DINÁMICO -->
+        <div class="flex-1 overflow-y-auto p-8">
+            
+            <!-- SECCIÓN: DASHBOARD -->
+            <section id="dashboard" class="section-content active-section space-y-8">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm"><p class="text-[10px] font-bold text-slate-400 uppercase">Órdenes Activas</p><h3 id="stat-activas" class="text-4xl font-black text-slate-800">0</h3></div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm"><p class="text-[10px] font-bold text-slate-400 uppercase">En Tránsito</p><h3 id="stat-transito" class="text-4xl font-black text-orange-500">0</h3></div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm"><p class="text-[10px] font-bold text-slate-400 uppercase">Entregadas Hoy</p><h3 id="stat-entregadas" class="text-4xl font-black text-green-600">0</h3></div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border-2 border-red-100"><p class="text-[10px] text-red-500 font-bold uppercase">Alertas 24h</p><h3 id="stat-alertas" class="text-4xl font-black text-red-600">0</h3></div>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border h-80"><canvas id="barChart"></canvas></div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border h-80"><canvas id="pieChart"></canvas></div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-xl overflow-hidden border">
+                    <div class="p-4 bg-slate-50 border-b flex items-center gap-2"><div class="w-3 h-3 bg-red-500 rounded-full"></div><h4 class="font-bold text-xs uppercase text-slate-600">Pedidos que superan 24h en tránsito</h4></div>
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-100 text-[10px] font-bold text-slate-400 uppercase">
+                            <tr><th class="p-4">Código</th><th class="p-4">Destino</th><th class="p-4">Tiempo Transcurrido</th><th class="p-4">Acción</th></tr>
+                        </thead>
+                        <tbody id="table-alerts-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECCIÓN: EN TRÁNSITO -->
+            <section id="transito" class="section-content space-y-6">
+                <h3 class="text-xl font-black text-slate-700 italic">Localización de Pedidos en Carretera</h3>
+                <div id="grid-transito" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+            </section>
+
+            <!-- SECCIÓN: ENTREGAS -->
+            <section id="entregas" class="section-content space-y-6">
+                <h3 class="text-xl font-black text-slate-700 italic">Auditoría de Recepción Digital</h3>
+                <div class="bg-white rounded-xl shadow overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-[#1e293b] text-white text-[10px] font-bold uppercase">
+                            <tr><th class="p-4">Código TRZ</th><th class="p-4">Destino</th><th class="p-4">Entregado Por</th><th class="p-4">Recibido Por</th><th class="p-4">Fecha/Hora</th></tr>
+                        </thead>
+                        <tbody id="table-entregas-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- SECCIÓN: USUARIOS -->
+            <section id="usuarios" class="section-content space-y-6">
+                <h3 class="text-xl font-black text-slate-700 italic">Personal con Acceso al Sistema</h3>
+                <div class="bg-white rounded-xl shadow overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <tbody id="table-usuarios-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
         </div>
-        <div class="space-y-4">
-            <h2 class="font-bold text-green-600 border-b-4 border-green-600 pb-2">ENTREGADOS (AUDITORÍA)</h2>
-            <div id="col-3" class="space-y-4"></div>
-        </div>
-    </div>
+    </main>
 
     <script>
-        async function load() {
-            const r = await fetch('https://transporte-medicamento-isss.onrender.com/api/ordenes/lista/GERENTE/0');
-            const data = await r.json();
-            
-            const render = (o) => `
-                <div class="bg-white p-6 rounded-xl shadow-lg border-l-8 ${o.estado_id === 2 ? 'border-orange-500' : 'border-blue-900'}">
-                    <p class="text-[10px] font-bold text-slate-400 mb-2">${o.codigo_trz} | ${o.numero_pedido}</p>
-                    <p class="font-bold text-slate-800">${o.destino_nombre}</p>
-                    <p class="text-xs text-slate-500 mt-2">Chofer: ${o.transportista_nombre}</p>
-                    <div class="bg-slate-50 p-2 mt-4 text-[10px] rounded">
-                        ${o.productos.map(p => `• ${p.nombre} (${p.cantidad}) ${p.frio ? '❄️' : ''}`).join('<br>')}
-                    </div>
-                    ${o.recibido_por ? `<div class="mt-4 border-t pt-2 text-[10px] text-green-600 font-bold uppercase">RECIBIDO POR: ${o.recibido_por}</div>` : ''}
-                </div>
-            `;
+        const API = "https://transporte-medicamento-isss.onrender.com/api";
 
-            document.getElementById('col-1').innerHTML = data.filter(o => o.estado_id === 1).map(render).join('');
-            document.getElementById('col-2').innerHTML = data.filter(o => o.estado_id === 2).map(render).join('');
-            document.getElementById('col-3').innerHTML = data.filter(o => o.estado_id === 3).map(render).join('');
+        function showSection(sectionId, element) {
+            document.querySelectorAll('.section-content').forEach(s => s.classList.remove('active-section'));
+            document.getElementById(sectionId).classList.add('active-section');
+            document.querySelectorAll('.menu-link').forEach(l => l.classList.remove('active-link'));
+            element.classList.add('active-link');
+            document.getElementById('current-title').innerText = element.innerText;
+            loadDataFor(sectionId);
         }
-        load();
+
+        async function loadDataFor(section) {
+            if(section === 'dashboard') loadDashboard();
+            if(section === 'transito') loadTransito();
+            if(section === 'entregas') loadEntregas();
+            if(section === 'usuarios') loadUsuarios();
+        }
+
+        async function loadDashboard() {
+            const res = await fetch(`${API}/ordenes/lista/GERENTE/0`);
+            const data = await res.json();
+            
+            const stats = { prep: 0, ruta: 0, fin: 0, alerts: 0 };
+            const alertRows = [];
+
+            data.forEach(o => {
+                if(o.estado_id === 1) stats.prep++;
+                if(o.estado_id === 2) {
+                    stats.ruta++;
+                    // Cálculo de 24 horas (RN-05 del PDF)
+                    const horas = Math.floor((new Date() - new Date(o.fecha_creacion)) / (1000 * 60 * 60));
+                    if(horas >= 24) {
+                        stats.alerts++;
+                        alertRows.push(`<tr class="border-b bg-red-50"><td class="p-4 font-bold text-red-700">${o.codigo_trz}</td><td class="p-4 italic">${o.destino_nombre}</td><td class="p-4 font-black text-red-600">${horas} Horas</td><td class="p-4"><button class="bg-red-600 text-white text-[10px] px-4 py-1 rounded shadow">CONTACTAR</button></td></tr>`);
+                    }
+                }
+                if(o.estado_id === 3) stats.fin++;
+            });
+
+            document.getElementById('stat-activas').innerText = stats.prep + stats.ruta;
+            document.getElementById('stat-transito').innerText = stats.ruta;
+            document.getElementById('stat-entregadas').innerText = stats.fin;
+            document.getElementById('stat-alertas').innerText = stats.alerts;
+            document.getElementById('table-alerts-body').innerHTML = alertRows.join('');
+            
+            updateCharts(stats);
+        }
+
+        async function loadTransito() {
+            const res = await fetch(`${API}/ordenes/lista/GERENTE/0`);
+            const data = await res.json();
+            const container = document.getElementById('grid-transito');
+            container.innerHTML = data.filter(o => o.estado_id === 2).map(o => `
+                <div class="bg-white p-6 rounded-2xl shadow-lg border-l-8 border-orange-500">
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-2">${o.codigo_trz}</p>
+                    <p class="font-black text-slate-800 text-lg leading-tight mb-4">${o.destino_nombre}</p>
+                    <div class="text-[10px] text-slate-500 space-y-1">
+                        <p><strong>Transportista:</strong> ${o.transportista_nombre}</p>
+                        <p><strong>Salida:</strong> ${new Date(o.fecha_creacion).toLocaleString()}</p>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function loadEntregas() {
+            const res = await fetch(`${API}/ordenes/lista/GERENTE/0`);
+            const data = await res.json();
+            document.getElementById('table-entregas-body').innerHTML = data.filter(o => o.estado_id === 3).map(o => `
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="p-4 font-bold text-blue-900">${o.codigo_trz}</td>
+                    <td class="p-4 font-medium">${o.destino_nombre}</td>
+                    <td class="p-4 text-xs font-bold text-slate-600">${o.transportista_nombre}</td>
+                    <td class="p-4 text-xs font-black text-green-700">${o.recibido_por || 'N/A'}</td>
+                    <td class="p-4 text-xs text-slate-400">${new Date(o.fecha_entrega).toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function loadUsuarios() {
+            const res = await fetch(`${API}/admin/usuarios`);
+            const data = await res.json();
+            document.getElementById('table-usuarios-body').innerHTML = data.map(u => `
+                <tr class="border-b">
+                    <td class="p-4 font-bold text-slate-700">${u.nombre_completo}</td>
+                    <td class="p-4 text-slate-500 text-xs">${u.email}</td>
+                    <td class="p-4"><span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-[10px] font-bold uppercase">${u.nombre_rol}</span></td>
+                    <td class="p-4 text-green-500 font-bold text-[10px]">ACTIVO</td>
+                </tr>
+            `).join('');
+        }
+
+        let bChart, pChart;
+        function updateCharts(stats) {
+            if(bChart) bChart.destroy();
+            if(pChart) pChart.destroy();
+
+            bChart = new Chart(document.getElementById('barChart'), {
+                type: 'bar',
+                data: { labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'], datasets: [{ label: 'Entregas', data: [12, 19, 30, 25, 28, 22, stats.fin], backgroundColor: '#3b82f6' }] },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            pChart = new Chart(document.getElementById('pieChart'), {
+                type: 'doughnut',
+                data: { labels: ['Preparación', 'En Ruta', 'Entregado'], datasets: [{ data: [stats.prep, stats.ruta, stats.fin], backgroundColor: ['#6366f1', '#f59e0b', '#10b981'] }] },
+                options: { maintainAspectRatio: false }
+            });
+        }
+
+        window.onload = loadDashboard;
     </script>
 </body>
 </html>
