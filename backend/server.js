@@ -1,68 +1,57 @@
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
-// pass database 
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// RECUERDA: Cambia esto por tu cadena de conexión de Supabase
+// Configuración de conexión ultra-compatible
 const pool = new Pool({
-  connectionString: "postgresql://postgres:$eS-V.ckKK7QvK$@db.gmaaevtlicykhjputkcd.supabase.co:5432/postgres" 
+    
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false // Esto permite la conexión segura con Supabase/Render
+  }
 });
 
-// 1. LOGIN
+// Probar conexión al iniciar
+pool.query('SELECT NOW()', (err, res) => {
+  if (err) console.error("❌ ERROR CRÍTICO DE CONEXIÓN A DB:", err);
+  else console.log("✅ CONECTADO A SUPABASE CORRECTAMENTE");
+});
+
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
-    try {
-        const user = await pool.query('SELECT usuarios.*, roles.nombre_rol FROM usuarios JOIN roles ON usuarios.role_id = roles.id WHERE email = $1 AND password_text = $2', [email, password]);
-        if (user.rows.length > 0) res.json(user.rows[0]);
-        else res.status(401).json({ error: "Datos incorrectos" });
-    } catch (err) { res.status(500).send(err.message); }
-});
-
-// 2. LISTAR ORDENES SEGUN ROL
-app.get('/api/ordenes/:rol/:id', async (req, res) => {
-    const { rol, id } = req.params;
-    let query = 'SELECT ordenes_envio.*, estados_orden.nombre_estado FROM ordenes_envio JOIN estados_orden ON ordenes_envio.estado_id = estados_orden.id';
     
-    if (rol === 'TRANSPORTISTA') query += ` WHERE transportista_id = ${id} AND estado_id = 1`;
-    if (rol === 'RECEPTOR') query += ` WHERE estado_id = 2`; // Ve las que están en ruta
-    
+    // Log para ver qué llega (Esto lo verás en la pestaña LOGS de Render)
+    console.log(`Intentando login para: ${email}`);
+
     try {
-        const result = await pool.query(query);
-        res.json(result.rows);
-    } catch (err) { res.status(500).send(err.message); }
+        // Usamos LOWER() para que no importe si escriben con mayúsculas
+        const query = `
+            SELECT usuarios.*, roles.nombre_rol 
+            FROM usuarios 
+            JOIN roles ON usuarios.role_id = roles.id 
+            WHERE LOWER(email) = LOWER($1) AND password_text = $2
+        `;
+        const user = await pool.query(query, [email, password]);
+
+        if (user.rows.length > 0) {
+            console.log("✅ Usuario encontrado:", user.rows[0].nombre_completo);
+            res.json(user.rows[0]);
+        } else {
+            console.log("⚠️ Credenciales no coinciden en la base de datos");
+            res.status(401).json({ error: "El correo o la contraseña no existen en el sistema" });
+        }
+    } catch (err) {
+        console.error("❌ Error en la consulta SQL:", err.message);
+        res.status(500).json({ error: "Error interno del servidor: " + err.message });
+    }
 });
 
-// 3. ACTUALIZAR ESTADO (RN-01: Secuencia de estados)
-app.put('/api/ordenes/estado', async (req, res) => {
-    const { orden_id, nuevo_estado_id } = req.body;
-    try {
-        await pool.query('UPDATE ordenes_envio SET estado_id = $1 WHERE id = $2', [nuevo_estado_id, orden_id]);
-        res.json({ success: true });
-    } catch (err) { res.status(500).send(err.message); }
-});
+// ... (El resto de tus rutas: ordenes, stats, etc, se mantienen igual)
+// Asegúrate de tenerlas abajo o cópialas del código anterior
 
-// 4. CREAR ORDEN (Farmacia)
-app.post('/api/ordenes', async (req, res) => {
-    const { destino_id, transportista_id, creador_id } = req.body;
-    const trz = `TRZ-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-    try {
-        const newOrder = await pool.query(
-            'INSERT INTO ordenes_envio (codigo_trz, unidad_destino_id, transportista_id, creador_id) VALUES ($1, $2, $3, $4) RETURNING *',
-            [trz, destino_id, transportista_id, creador_id]
-        );
-        res.json(newOrder.rows[0]);
-    } catch (err) { res.status(500).send(err.message); }
-});
-
-// 5. ESTADISTICAS (Gerente)
-app.get('/api/stats', async (req, res) => {
-    try {
-        const result = await pool.query('SELECT COUNT(*) as total FROM ordenes_envio');
-        res.json(result.rows[0]);
-    } catch (err) { res.status(500).send(err.message); }
-});
-
-app.listen(3000, () => console.log("Servidor en puerto 3000"));
+app.listen(process.env.PORT || 3000, () => console.log("Servidor activo"));
+  
