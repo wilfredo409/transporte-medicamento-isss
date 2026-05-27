@@ -15,12 +15,22 @@ const pool = new Pool({
 // LOGIN
 app.post('/api/login', async (req, res) => {
     const { email, password } = req.body;
-    const result = await pool.query('SELECT u.*, r.nombre_rol FROM usuarios u JOIN roles r ON u.role_id = r.id WHERE LOWER(u.email) = LOWER($1) AND u.password_text = $2', [email, password]);
-    if (result.rows.length > 0) res.json(result.rows[0]);
-    else res.status(401).json({ error: "No autorizado" });
+    try {
+        const result = await pool.query('SELECT u.*, r.nombre_rol FROM usuarios u JOIN roles r ON u.role_id = r.id WHERE LOWER(u.email) = LOWER($1) AND u.password_text = $2', [email, password]);
+        if (result.rows.length > 0) res.json(result.rows[0]);
+        else res.status(401).json({ error: "Credenciales inválidas" });
+    } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// CREAR PEDIDO (Generación automática de Número de Pedido)
+// CATALOGOS
+app.get('/api/catalogos', async (req, res) => {
+    const unidades = await pool.query('SELECT id, nombre FROM unidades_medicas');
+    const transportistas = await pool.query('SELECT id, nombre_completo FROM usuarios WHERE role_id = 2');
+    const medicamentos = await pool.query('SELECT id, nombre, requiere_frio FROM medicamentos');
+    res.json({ unidades: unidades.rows, transportistas: transportistas.rows, medicamentos: medicamentos.rows });
+});
+
+// CREAR ORDEN (Auto-generación de números)
 app.post('/api/ordenes', async (req, res) => {
     const { destino_id, transportista_id, creador_id, productos } = req.body;
     const client = await pool.connect();
@@ -38,34 +48,20 @@ app.post('/api/ordenes', async (req, res) => {
         for (let p of productos) {
             await client.query('INSERT INTO detalle_pedido (orden_id, medicamento_id, cantidad) VALUES ($1, $2, $3)', [order.rows[0].id, p.id, p.cantidad]);
         }
-
         await client.query('INSERT INTO auditoria_estados (orden_id, estado_nuevo, usuario_id) VALUES ($1, $2, $3)', [order.rows[0].id, 'PREPARACION', creador_id]);
-        
         await client.query('COMMIT');
-        res.json({ success: true, codigo: trz });
-    } catch (e) { await client.query('ROLLBACK'); res.status(500).send(e.message); }
+        res.json({ success: true });
+    } catch (e) { await client.query('ROLLBACK'); res.status(500).json({error: e.message}); }
     finally { client.release(); }
 });
 
-// ACTUALIZAR ESTADO + AUDITORIA
-app.put('/api/ordenes/estado', async (req, res) => {
-    const { orden_id, nuevo_estado_id, usuario_id, nombre_estado, recibido_por } = req.body;
-    const fecha = nuevo_estado_id === 3 ? ', fecha_entrega = NOW(), recibido_por = $3' : '';
-    const params = [nuevo_estado_id, orden_id];
-    if(recibido_por) params.push(recibido_por);
-
-    await pool.query(`UPDATE ordenes_envio SET estado_id = $1 ${fecha} WHERE id = $2`, params);
-    await pool.query('INSERT INTO auditoria_estados (orden_id, estado_nuevo, usuario_id) VALUES ($1, $2, $3)', [orden_id, nombre_estado, usuario_id]);
-    res.json({ success: true });
-});
-
-// LISTADO COMPLETO CON DETALLE DE MEDICAMENTOS Y CADENA DE FRÍO
-app.get('/api/ordenes/reporte/:rol/:id', async (req, res) => {
+// LISTA DINAMICA POR ROL
+app.get('/api/ordenes/lista/:rol/:id', async (req, res) => {
     const { rol, id } = req.params;
     let filter = '';
-    if(rol === 'TRANSPORTISTA') filter = `WHERE transportista_id = ${id} AND estado_id IN (1,2)`;
-    if(rol === 'RECEPTOR') filter = `WHERE o.estado_id IN (2,3)`;
-    if(rol === 'GERENTE' || rol === 'ADMIN') filter = ``;
+    if (rol === 'TRANSPORTISTA') filter = `WHERE o.transportista_id = ${id} AND o.estado_id IN (1, 2)`;
+    else if (rol === 'RECEPTOR') filter = `WHERE o.estado_id IN (2, 3)`;
+    else if (rol === 'FARMACIA') filter = `WHERE o.creador_id = ${id}`;
 
     const query = `
         SELECT o.*, e.nombre_estado, u.nombre as destino_nombre, t.nombre_completo as transportista_nombre,
@@ -81,10 +77,20 @@ app.get('/api/ordenes/reporte/:rol/:id', async (req, res) => {
     res.json(result.rows);
 });
 
-// CATALOGOS PARA ADMIN
-app.get('/api/admin/usuarios', async (req, res) => {
-    const resu = await pool.query('SELECT u.*, r.nombre_rol FROM usuarios u JOIN roles r ON u.role_id = r.id');
-    res.json(resu.rows);
+// ACTUALIZAR ESTADO
+app.put('/api/ordenes/estado', async (req, res) => {
+    const { orden_id, nuevo_estado_id, usuario_id, nombre_estado, firma } = req.body;
+    let extra = '';
+    if (nuevo_estado_id === 3) extra = `, fecha_entrega = NOW(), recibido_por = '${firma}'`;
+    
+    await pool.query(`UPDATE ordenes_envio SET estado_id = $1 ${extra} WHERE id = $2`, [nuevo_estado_id, orden_id]);
+    await pool.query('INSERT INTO auditoria_estados (orden_id, estado_nuevo, usuario_id) VALUES ($1, $2, $3)', [orden_id, nombre_estado, usuario_id]);
+    res.json({ success: true });
 });
 
-app.listen(3000, () => console.log("Sistema ISSS V4 Online"));
+app.get('/api/stats', async (req, res) => {
+    const r = await pool.query('SELECT estado_id, COUNT(*) FROM ordenes_envio GROUP BY estado_id');
+    res.json(r.rows);
+});
+
+app.listen(process.env.PORT || 3000, () => console.log("Backend ISSS Activo"));
