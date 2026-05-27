@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Despacho ISSS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-slate-50 flex h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-[#1e293b] text-slate-300 flex flex-col">
+        <div class="p-6 bg-[#0f172a] text-white font-bold">ISSS LOGÍSTICA</div>
+        <nav class="flex-1">
+            <a href="#" class="block px-6 py-4 bg-blue-600 text-white font-bold"> <i class="fas fa-plus-circle mr-2"></i> Crear Orden</a>
+            <a href="#" class="block px-6 py-4 hover:bg-slate-800"> <i class="fas fa-list mr-2"></i> Mis Pedidos</a>
+        </nav>
+        <button onclick="location.href='index.html'" class="p-6 text-red-400">Cerrar Sesión</button>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 p-8 overflow-y-auto">
+        <div class="bg-white p-8 rounded-xl shadow-lg border mb-8">
+            <h2 class="text-xl font-bold mb-6 text-blue-900 uppercase border-b pb-4">Nueva Orden de Envío</h2>
+            <div class="grid grid-cols-2 gap-8 mb-6">
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase">Destino</label>
+                    <select id="sel-unidades" class="w-full border p-3 rounded bg-slate-50"></select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-slate-400 uppercase">Transportista</label>
+                    <select id="sel-trans" class="w-full border p-3 rounded bg-slate-50"></select>
+                </div>
+            </div>
+            <div class="space-y-4">
+                <div class="flex gap-4">
+                    <select id="sel-med" class="flex-1 border p-3 rounded"></select>
+                    <input id="inp-cant" type="number" value="100" class="w-24 border p-3 rounded">
+                    <button onclick="addMed()" class="bg-blue-600 text-white px-6 rounded font-bold">Agregar</button>
+                </div>
+                <table class="w-full text-left">
+                    <thead class="bg-slate-100 text-xs uppercase font-bold">
+                        <tr><th class="p-3">Medicamento</th><th class="p-3">Cant.</th><th class="p-3">Frio</th></tr>
+                    </thead>
+                    <tbody id="lista-meds"></tbody>
+                </table>
+                <button onclick="enviar()" class="w-full bg-[#1e3a8a] text-white py-4 rounded-xl font-bold mt-6 shadow-lg">GENERAR ORDEN DIGITAL</button>
+            </div>
+        </div>
+
+        <h3 class="text-lg font-bold mb-4">Mis Despachos Recientes</h3>
+        <div id="grid-pedidos" class="grid grid-cols-2 gap-4"></div>
+    </main>
+
+    <script>
+        const user = JSON.parse(localStorage.getItem('user'));
+        let carrito = [];
+
+        async function init() {
+            const r = await fetch('/api/catalogos');
+            const d = await r.json();
+            document.getElementById('sel-unidades').innerHTML = d.unidades.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
+            document.getElementById('sel-trans').innerHTML = d.transportistas.map(t => `<option value="${t.id}">${t.nombre_completo}</option>`).join('');
+            document.getElementById('sel-med').innerHTML = d.medicamentos.map(m => `<option value="${m.id}" data-frio="${m.requiere_frio}">${m.nombre}</option>`).join('');
+            loadPedidos();
+        }
+
+        function addMed() {
+            const sel = document.getElementById('sel-med');
+            const opt = sel.options[sel.selectedIndex];
+            carrito.push({ id: sel.value, nombre: opt.text, cantidad: document.getElementById('inp-cant').value, frio: opt.dataset.frio === 'true' });
+            renderCarrito();
+        }
+
+        function renderCarrito() {
+            document.getElementById('lista-meds').innerHTML = carrito.map(m => `<tr><td class="p-2 font-bold">${m.nombre}</td><td class="p-2">${m.cantidad}</td><td>${m.frio ? '❄️' : ''}</td></tr>`).join('');
+        }
+
+        async function enviar() {
+            await fetch('/api/ordenes', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ destino_id: document.getElementById('sel-unidades').value, transportista_id: document.getElementById('sel-trans').value, creador_id: user.id, productos: carrito })
+            });
+            alert("Orden Creada");
+            location.reload();
+        }
+
+        async function loadPedidos() {
+            const r = await fetch(`/api/ordenes/lista/FARMACIA/${user.id}`);
+            const data = await r.json();
+            document.getElementById('grid-pedidos').innerHTML = data.map(o => `
+                <div class="bg-white p-4 rounded shadow border-l-4 border-blue-900">
+                    <p class="text-[10px] font-bold text-slate-400">${o.codigo_trz}</p>
+                    <p class="font-bold">${o.destino_nombre}</p>
+                    <p class="text-xs">Estado: ${o.nombre_estado}</p>
+                </div>
+            `).join('');
+        }
+        init();
+    </script>
+</body>
+</html>

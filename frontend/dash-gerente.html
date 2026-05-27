@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gerencia ISSS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 p-8">
+    <header class="flex justify-between items-center mb-8">
+        <h1 class="text-2xl font-black text-slate-800 uppercase">Dashboard Gerencial de Trazabilidad</h1>
+        <button onclick="location.href='index.html'" class="bg-red-500 text-white px-4 py-2 rounded">Salir</button>
+    </header>
+
+    <div class="grid grid-cols-3 gap-8">
+        <div class="space-y-4">
+            <h2 class="font-bold text-blue-900 border-b-4 border-blue-900 pb-2">PREPARACIÓN</h2>
+            <div id="col-1" class="space-y-4"></div>
+        </div>
+        <div class="space-y-4">
+            <h2 class="font-bold text-orange-600 border-b-4 border-orange-600 pb-2">EN RUTA</h2>
+            <div id="col-2" class="space-y-4"></div>
+        </div>
+        <div class="space-y-4">
+            <h2 class="font-bold text-green-600 border-b-4 border-green-600 pb-2">ENTREGADOS (AUDITORÍA)</h2>
+            <div id="col-3" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <script>
+        async function load() {
+            const r = await fetch('/api/ordenes/lista/GERENTE/0');
+            const data = await r.json();
+            
+            const render = (o) => `
+                <div class="bg-white p-6 rounded-xl shadow-lg border-l-8 ${o.estado_id === 2 ? 'border-orange-500' : 'border-blue-900'}">
+                    <p class="text-[10px] font-bold text-slate-400 mb-2">${o.codigo_trz} | ${o.numero_pedido}</p>
+                    <p class="font-bold text-slate-800">${o.destino_nombre}</p>
+                    <p class="text-xs text-slate-500 mt-2">Chofer: ${o.transportista_nombre}</p>
+                    <div class="bg-slate-50 p-2 mt-4 text-[10px] rounded">
+                        ${o.productos.map(p => `• ${p.nombre} (${p.cantidad}) ${p.frio ? '❄️' : ''}`).join('<br>')}
+                    </div>
+                    ${o.recibido_por ? `<div class="mt-4 border-t pt-2 text-[10px] text-green-600 font-bold uppercase">RECIBIDO POR: ${o.recibido_por}</div>` : ''}
+                </div>
+            `;
+
+            document.getElementById('col-1').innerHTML = data.filter(o => o.estado_id === 1).map(render).join('');
+            document.getElementById('col-2').innerHTML = data.filter(o => o.estado_id === 2).map(render).join('');
+            document.getElementById('col-3').innerHTML = data.filter(o => o.estado_id === 3).map(render).join('');
+        }
+        load();
+    </script>
+</body>
+</html>

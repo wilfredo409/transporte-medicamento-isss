@@ -2,252 +2,30 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>ISSS - Sistema de Trazabilidad</title>
+    <title>ISSS - Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-slate-50 h-screen flex overflow-hidden font-sans">
-
-    <!-- LOGIN -->
-    <div id="view-login" class="fixed inset-0 z-50 bg-[#f0f4f8] flex items-center justify-center">
-        <div class="bg-white rounded-xl shadow-2xl w-[450px] overflow-hidden border">
-            <div class="bg-[#1e3a8a] p-8 text-white text-center">
-                <i class="fas fa-hospital-symbol text-4xl mb-2"></i>
-                <h1 class="text-2xl font-bold tracking-widest">ISSS</h1>
-                <p class="text-xs opacity-80 uppercase">Trazabilidad de Medicamentos</p>
-            </div>
-            <div class="p-10 space-y-6">
-                <input id="email" type="email" placeholder="Correo Institucional" class="w-full border-2 p-4 rounded-xl focus:ring-2 ring-blue-500 outline-none">
-                <input id="pass" type="password" placeholder="Contraseña" class="w-full border-2 p-4 rounded-xl focus:ring-2 ring-blue-500 outline-none">
-                <button onclick="login()" class="w-full bg-[#1e3a8a] text-white py-4 rounded-xl font-bold hover:bg-blue-800 transition shadow-lg uppercase">INGRESAR AL SISTEMA</button>
-            </div>
+<body class="bg-slate-100 flex items-center justify-center h-screen">
+    <div class="bg-white rounded-xl shadow-2xl w-96 overflow-hidden">
+        <div class="bg-[#1e3a8a] p-6 text-white text-center font-bold uppercase">ISSS Trazabilidad</div>
+        <div class="p-8 space-y-4">
+            <input id="email" type="email" placeholder="Usuario" class="w-full border p-3 rounded">
+            <input id="pass" type="password" placeholder="Contraseña" class="w-full border p-3 rounded">
+            <button onclick="login()" class="w-full bg-[#1e3a8a] text-white py-3 rounded font-bold">INGRESAR</button>
         </div>
     </div>
-
-    <!-- SIDEBAR -->
-    <aside id="sidebar" class="hidden w-64 bg-[#1e293b] text-slate-300 flex flex-col shadow-2xl">
-        <div class="p-6 bg-[#0f172a] text-white font-black text-xl italic border-b border-slate-700">ISSS Logística</div>
-        <nav class="flex-1 mt-4 space-y-1">
-            <a href="#" onclick="switchTab('dashboard')" class="flex items-center gap-4 px-6 py-4 hover:bg-slate-800 text-white bg-blue-600"><i class="fas fa-th-large"></i> Dashboard</a>
-            <a href="#" onclick="switchTab('pedidos')" class="flex items-center gap-4 px-6 py-4 hover:bg-slate-800"><i class="fas fa-truck"></i> Mis Pedidos</a>
-            <a href="#" class="flex items-center gap-4 px-6 py-4 hover:bg-slate-800 opacity-50"><i class="fas fa-file-alt"></i> Reportes</a>
-        </nav>
-        <div class="p-6 border-t border-slate-700 text-xs">
-            <p id="u-name" class="font-bold text-white"></p>
-            <p id="u-role" class="text-blue-400 font-bold uppercase mt-1"></p>
-            <button onclick="location.reload()" class="mt-4 text-red-400 hover:underline">Cerrar Sesión</button>
-        </div>
-    </aside>
-
-    <!-- CONTENT AREA -->
-    <main id="main-content" class="hidden flex-1 flex flex-col overflow-hidden">
-        <header class="bg-white border-b p-6 flex justify-between items-center shadow-sm">
-            <h2 id="tab-title" class="text-2xl font-black text-slate-800 uppercase tracking-tighter">Dashboard Gerencial</h2>
-            <div class="flex items-center gap-4">
-                <span class="text-xs font-bold text-slate-400">FASE 2 - UDB 2026</span>
-                <div id="avatar" class="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold"></div>
-            </div>
-        </header>
-
-        <div class="flex-1 overflow-y-auto p-8 space-y-8">
-            
-            <!-- VISTA GERENTE (4 COLUMNAS) -->
-            <div id="view-gerente" class="hidden space-y-8">
-                <div class="grid grid-cols-4 gap-6">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border-l-8 border-blue-500">
-                        <p class="text-xs font-bold text-slate-400 uppercase">Preparación</p>
-                        <p id="stat-1" class="text-4xl font-black text-slate-800">0</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border-l-8 border-orange-500">
-                        <p class="text-xs font-bold text-slate-400 uppercase">En Ruta</p>
-                        <p id="stat-2" class="text-4xl font-black text-slate-800">0</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border-l-8 border-green-500">
-                        <p class="text-xs font-bold text-slate-400 uppercase">Entregados</p>
-                        <p id="stat-3" class="text-4xl font-black text-slate-800">0</p>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border-l-8 border-red-500">
-                        <p class="text-xs font-bold text-slate-400 uppercase">Incidencias</p>
-                        <p class="text-4xl font-black text-slate-800">0</p>
-                    </div>
-                </div>
-                <div id="kanban" class="grid grid-cols-1 lg:grid-cols-3 gap-8"></div>
-            </div>
-
-            <!-- VISTA FARMACIA (FORMULARIO) -->
-            <div id="view-farmacia" class="hidden space-y-8">
-                <div class="bg-white rounded-2xl shadow-xl p-10 border max-w-4xl">
-                    <h3 class="text-xl font-bold mb-8 border-b pb-4 text-slate-700">Crear Nueva Guía de Despacho</h3>
-                    <div class="grid grid-cols-2 gap-8 mb-8">
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-slate-400 uppercase">Unidad Médica Destino</label>
-                            <select id="sel-unidades" class="w-full border-2 p-3 rounded-xl bg-slate-50 font-bold"></select>
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-xs font-bold text-slate-400 uppercase">Transportista Asignado</label>
-                            <select id="sel-trans" class="w-full border-2 p-3 rounded-xl bg-slate-50 font-bold"></select>
-                        </div>
-                    </div>
-                    <div class="space-y-4">
-                        <p class="text-xs font-bold text-blue-600 uppercase border-b pb-2">Selección de Medicamentos</p>
-                        <div class="flex gap-4">
-                            <select id="sel-med" class="flex-1 border-2 p-3 rounded-xl font-bold"></select>
-                            <input id="inp-cant" type="number" value="100" class="w-24 border-2 p-3 rounded-xl text-center">
-                            <button onclick="addMed()" class="bg-blue-600 text-white px-8 rounded-xl font-bold">+ AGREGAR</button>
-                        </div>
-                        <table class="w-full text-left">
-                            <thead class="text-[10px] font-bold text-slate-400 uppercase bg-slate-50">
-                                <tr><th class="p-3">Medicamento</th><th class="p-3 text-center">Cant.</th><th class="p-3 text-center">Frio</th><th class="p-3 text-right">Acción</th></tr>
-                            </thead>
-                            <tbody id="lista-meds"></tbody>
-                        </table>
-                    </div>
-                    <div class="mt-10 pt-6 border-t flex justify-end">
-                        <button onclick="crearPedido()" class="bg-[#1e3a8a] text-white px-12 py-4 rounded-xl font-black shadow-lg hover:bg-blue-900 transition">FINALIZAR Y GENERAR TRZ</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- VISTA LISTADO DINAMICO (TRANSPORTISTA / RECEPTOR) -->
-            <div id="view-lista" class="hidden">
-                <div id="grid-pedidos" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
-            </div>
-
-        </div>
-    </main>
-
     <script>
-        const API = "https://transporte-medicamento-isss.onrender.com/api";
-        let user = null;
-        let carrito = [];
-
         async function login() {
-            const res = await fetch(`${API}/login`, {
+            const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ email: document.getElementById('email').value, password: document.getElementById('pass').value })
             });
+            const data = await res.json();
             if(res.ok) {
-                user = await res.json();
-                document.getElementById('view-login').style.display = 'none';
-                document.getElementById('sidebar').classList.remove('hidden');
-                document.getElementById('main-content').classList.remove('hidden');
-                document.getElementById('u-name').innerText = user.nombre_completo;
-                document.getElementById('u-role').innerText = user.nombre_rol;
-                document.getElementById('avatar').innerText = user.nombre_completo.split(' ').map(n => n[0]).join('');
-                
-                switchTab('dashboard');
-            } else { alert("Credenciales Incorrectas"); }
-        }
-
-        function switchTab(tab) {
-            document.getElementById('view-gerente').classList.add('hidden');
-            document.getElementById('view-farmacia').classList.add('hidden');
-            document.getElementById('view-lista').classList.add('hidden');
-
-            if(tab === 'dashboard') {
-                if(user.role_id === 1) document.getElementById('view-farmacia').classList.remove('hidden');
-                else if(user.role_id === 4) { document.getElementById('view-gerente').classList.remove('hidden'); loadGerente(); }
-                else { document.getElementById('view-lista').classList.remove('hidden'); loadLista(); }
-            } else {
-                document.getElementById('view-lista').classList.remove('hidden');
-                loadLista();
-            }
-            cargarCatalogos();
-        }
-
-        async function cargarCatalogos() {
-            const r = await fetch(`${API}/catalogos`);
-            const d = await r.json();
-            document.getElementById('sel-unidades').innerHTML = d.unidades.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
-            document.getElementById('sel-trans').innerHTML = d.transportistas.map(t => `<option value="${t.id}">${t.nombre_completo}</option>`).join('');
-            document.getElementById('sel-med').innerHTML = d.medicamentos.map(m => `<option value="${m.id}" data-frio="${m.requiere_frio}">${m.nombre}</option>`).join('');
-        }
-
-        function addMed() {
-            const sel = document.getElementById('sel-med');
-            const opt = sel.options[sel.selectedIndex];
-            carrito.push({ id: sel.value, nombre: opt.text, cantidad: document.getElementById('inp-cant').value, frio: opt.dataset.frio === 'true' });
-            renderCarrito();
-        }
-
-        function renderCarrito() {
-            document.getElementById('lista-meds').innerHTML = carrito.map((m, i) => `
-                <tr class="border-b">
-                    <td class="p-3 font-bold text-slate-700">${m.nombre}</td>
-                    <td class="p-3 text-center">${m.cantidad}</td>
-                    <td class="p-3 text-center">${m.frio ? '❄️ SI' : 'NO'}</td>
-                    <td class="p-3 text-right"><button onclick="carrito.splice(${i},1);renderCarrito()" class="text-red-500"><i class="fas fa-trash"></i></button></td>
-                </tr>
-            `).join('');
-        }
-
-        async function crearPedido() {
-            const res = await fetch(`${API}/ordenes`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ destino_id: document.getElementById('sel-unidades').value, transportista_id: document.getElementById('sel-trans').value, creador_id: user.id, productos: carrito })
-            });
-            if(res.ok) { alert("¡GUÍA GENERADA CON ÉXITO!"); carrito = []; renderCarrito(); switchTab('pedidos'); }
-        }
-
-        async function loadLista() {
-            const r = await fetch(`${API}/ordenes/lista/${user.nombre_rol}/${user.id}`);
-            const data = await r.json();
-            document.getElementById('grid-pedidos').innerHTML = data.map(o => crearCard(o)).join('');
-        }
-
-        async function loadGerente() {
-            const r = await fetch(`${API}/ordenes/lista/ADMIN/0`);
-            const ordenes = await r.json();
-            const stats = await (await fetch(`${API}/stats`)).json();
-            
-            stats.forEach(s => document.getElementById(`stat-${s.estado_id}`).innerText = s.count);
-
-            const col1 = ordenes.filter(o => o.estado_id === 1);
-            const col2 = ordenes.filter(o => o.estado_id === 2);
-            const col3 = ordenes.filter(o => o.estado_id === 3);
-
-            document.getElementById('kanban').innerHTML = `
-                <div class="space-y-4"> <h4 class="font-black text-slate-400 text-xs uppercase">Preparación</h4> ${col1.map(o => crearCard(o, true)).join('')} </div>
-                <div class="space-y-4"> <h4 class="font-black text-slate-400 text-xs uppercase">En Tránsito</h4> ${col2.map(o => crearCard(o, true)).join('')} </div>
-                <div class="space-y-4"> <h4 class="font-black text-slate-400 text-xs uppercase">Entregados</h4> ${col3.map(o => crearCard(o, true)).join('')} </div>
-            `;
-        }
-
-        function crearCard(o, esAdmin = false) {
-            const frio = o.productos.some(p => p.frio);
-            let btn = '';
-            if(!esAdmin && user.role_id === 2 && o.estado_id === 1) btn = `<button onclick="updateEstado(${o.id}, 2, 'EN_RUTA')" class="w-full bg-orange-500 text-white font-bold py-2 rounded-lg mt-4">INICIAR RUTA</button>`;
-            if(!esAdmin && user.role_id === 3 && o.estado_id === 2) btn = `<button onclick="updateEstado(${o.id}, 3, 'ENTREGADO')" class="w-full bg-green-600 text-white font-bold py-2 rounded-lg mt-4">CONFIRMAR RECEPCIÓN</button>`;
-
-            return `
-                <div class="bg-white p-6 rounded-2xl shadow-lg border-l-8 ${o.estado_id === 2 ? 'border-orange-500' : 'border-blue-900'} relative">
-                    ${fio ? '<div class="absolute top-2 right-2 text-blue-500 text-[10px] font-black italic">❄️ CADENA FRIO</div>' : ''}
-                    <p class="text-[10px] font-black text-slate-400 uppercase mb-2">${o.codigo_trz} | ${o.numero_pedido}</p>
-                    <p class="text-xs font-bold text-blue-600 mb-1 uppercase">Destino:</p>
-                    <p class="font-black text-slate-800 text-lg mb-4 leading-tight">${o.destino_nombre}</p>
-                    <div class="bg-slate-50 p-3 rounded-xl text-[10px] space-y-1 mb-4">
-                        ${o.productos.map(p => `<p class="flex justify-between"><span>${p.nombre}</span> <span class="font-bold">${p.cantidad}</span></p>`).join('')}
-                    </div>
-                    ${o.recibido_por ? `<p class="text-[9px] text-green-600 font-bold italic mb-2">Recibido por: ${o.recibido_por}</p>` : ''}
-                    <p class="text-[9px] text-slate-400">Estado: <span class="font-bold">${o.nombre_estado}</span></p>
-                    ${btn}
-                </div>
-            `;
-        }
-
-        async function updateEstado(id, eid, nombre) {
-            let firma = "";
-            if(eid === 3) firma = prompt("Nombre de la persona que recibe:");
-            if(eid === 3 && !firma) return;
-
-            await fetch(`${API}/ordenes/estado`, {
-                method: 'PUT',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ orden_id: id, nuevo_estado_id: eid, usuario_id: user.id, nombre_estado: nombre, firma: firma })
-            });
-            location.reload();
+                localStorage.setItem('user', JSON.stringify(data.user));
+                window.location.href = data.redirect;
+            } else { alert("Error"); }
         }
     </script>
 </body>
