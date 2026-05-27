@@ -73,28 +73,54 @@
         let user = null;
 
         async function login() {
-    const email = document.getElementById('email').value;
-    const pass = document.getElementById('pass').value;
+    const emailInput = document.getElementById('email').value.trim();
+    const passwordInput = document.getElementById('pass').value;
 
     try {
         const res = await fetch(`${API}/login`, {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ email: email, password: pass })
+            body: JSON.stringify({ email: emailInput, password: passwordInput })
         });
 
         const data = await res.json();
 
         if (res.ok) {
-            // ... (todo el código de éxito que ya tenías)
-            alert("Bienvenido " + data.nombre_completo);
-            location.reload(); // O lo que uses para entrar
+            user = data; // Guardamos los datos del usuario (Ana)
+            
+            // 1. Ocultar el Login y mostrar la App
+            document.getElementById('view-login').classList.add('hidden');
+            document.getElementById('view-app').classList.remove('hidden');
+            
+            // 2. Mostrar nombre en la barra superior
+            document.getElementById('user-info').innerText = `${user.nombre_completo} | ${user.nombre_rol}`;
+            
+            // 3. LOGICA DE ROLES (Asegúrate que coincidan con Supabase)
+            // Ponemos todo en MAYÚSCULAS para evitar errores de escritura
+            const rol = user.nombre_rol.toUpperCase();
+            console.log("Entrando con rol:", rol);
+
+            if (rol === 'GERENTE') {
+                document.getElementById('role-gerente').classList.remove('hidden');
+                cargarStats();
+            } else if (rol === 'FARMACIA') {
+                document.getElementById('role-farmacia').classList.remove('hidden');
+            } else if (rol === 'TRANSPORTISTA') {
+                document.getElementById('role-transportista').classList.remove('hidden');
+                cargarOrdenes();
+            } else if (rol === 'RECEPTOR') {
+                document.getElementById('role-receptor').classList.remove('hidden');
+                cargarOrdenes();
+            }
+            
+            alert("Acceso concedido: Bienvenido " + user.nombre_completo);
+
         } else {
-            // ESTO TE DIRÁ EL ERROR REAL
-            alert("RESPUESTA DEL SERVIDOR: " + data.error);
+            alert("Error: " + (data.error || "Credenciales incorrectas"));
         }
     } catch (err) {
-        alert("ERROR DE RED: No se pudo contactar al servidor. Revisa si Render está 'Live'.");
+        console.error(err);
+        alert("Error de conexión: El servidor tardó mucho en responder.");
     }
 }
         async function cargarOrdenes() {
