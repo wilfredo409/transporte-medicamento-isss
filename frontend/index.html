@@ -2,142 +2,155 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Sistema ISSS - Trazabilidad Total</title>
+    <title>ISSS Trazabilidad Digital</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-slate-100 min-h-screen font-sans">
 
     <!-- LOGIN -->
-    <div id="view-login" class="flex items-center justify-center h-screen">
-        <div class="bg-white p-8 rounded shadow-2xl w-96 text-center border-t-8 border-blue-800">
-            <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Logo_del_ISSS.svg" class="h-16 mx-auto mb-4">
-            <h2 class="text-xl font-bold mb-4">Módulo de Trazabilidad</h2>
-            <input id="email" type="email" placeholder="Correo" class="w-full border p-2 mb-2 rounded">
-            <input id="pass" type="password" placeholder="Contraseña" class="w-full border p-2 mb-4 rounded">
-            <button onclick="login()" class="w-full bg-blue-800 text-white font-bold py-2 rounded">INGRESAR</button>
-            <p class="text-[10px] mt-4 text-gray-400 font-bold">FASE 2 - UNIVERSIDAD DON BOSCO</p>
+    <div id="view-login" class="flex items-center justify-center h-screen bg-gradient-to-br from-blue-900 to-blue-700">
+        <div class="bg-white p-10 rounded-2xl shadow-2xl w-full max-w-md">
+            <img src="https://www.isss.gob.sv/wp-content/uploads/2021/04/logo-isss.png" class="h-20 mx-auto mb-6">
+            <h1 class="text-2xl font-bold text-center text-gray-800 mb-8">Sistema de Trazabilidad</h1>
+            <div class="space-y-4">
+                <input id="email" type="email" placeholder="Usuario Institucional" class="w-full border-2 p-3 rounded-xl focus:border-blue-500 outline-none">
+                <input id="pass" type="password" placeholder="Contraseña" class="w-full border-2 p-3 rounded-xl focus:border-blue-500 outline-none">
+                <button onclick="login()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl transition-all shadow-lg uppercase">Entrar al Sistema</button>
+            </div>
         </div>
     </div>
 
-    <!-- APP PRINCIPAL -->
+    <!-- MAIN APP -->
     <div id="view-app" class="hidden">
-        <nav class="bg-blue-900 text-white p-4 flex justify-between items-center shadow-lg">
-            <span class="font-bold tracking-widest">ISSS LOGÍSTICA</span>
-            <div class="flex items-center gap-4">
-                <span id="user-info" class="text-xs bg-blue-800 px-3 py-1 rounded-full"></span>
-                <button onclick="location.reload()" class="bg-red-600 px-2 py-1 rounded text-xs font-bold">Cerrar</button>
+        <nav class="bg-white border-b p-4 flex justify-between items-center px-8 shadow-sm">
+            <div class="flex items-center gap-3">
+                <img src="https://cdn-icons-png.flaticon.com/512/822/822143.png" class="h-8">
+                <span class="font-black text-blue-900 tracking-tighter text-xl italic">ISSS LOGÍSTICA</span>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="text-right">
+                    <p id="user-name" class="font-bold text-gray-800 leading-none"></p>
+                    <span id="user-role" class="text-xs text-blue-600 font-bold uppercase tracking-widest"></span>
+                </div>
+                <button onclick="location.reload()" class="bg-red-50 text-red-600 p-2 rounded-full hover:bg-red-100"><i class="fas fa-sign-out-alt"></i></button>
             </div>
         </nav>
 
-        <div class="p-8 max-w-5xl mx-auto">
+        <main class="p-8 max-w-6xl mx-auto">
             
-            <!-- VISTA GERENTE -->
-            <div id="role-gerente" class="hidden">
-                <h2 class="text-2xl font-bold mb-6 text-blue-900">Dashboard Gerencial</h2>
-                <div class="bg-white p-8 rounded-xl shadow-lg border-l-8 border-blue-500 w-72">
-                    <p class="text-gray-400 font-bold text-xs uppercase">Órdenes en Sistema</p>
-                    <p id="stat-total" class="text-5xl font-black">0</p>
+            <!-- SECCION FARMACIA -->
+            <div id="role-farmacia" class="hidden space-y-6">
+                <h2 class="text-3xl font-bold text-gray-800">Despacho de Medicamentos</h2>
+                <div class="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-4">
+                        <label class="block font-bold text-gray-600 text-sm">NÚMERO DE PEDIDO / REQUISICIÓN</label>
+                        <input id="num-pedido" type="text" placeholder="Ej: PED-2026-001" class="w-full border-2 p-3 rounded-xl">
+                        
+                        <label class="block font-bold text-gray-600 text-sm">UNIDAD MÉDICA DESTINO</label>
+                        <select id="select-unidades" class="w-full border-2 p-3 rounded-xl bg-gray-50"></select>
+                    </div>
+                    <div class="space-y-4">
+                        <label class="block font-bold text-gray-600 text-sm">TRANSPORTISTA ASIGNADO</label>
+                        <select id="select-trans" class="w-full border-2 p-3 rounded-xl bg-gray-50"></select>
+                        
+                        <div class="pt-8">
+                            <button onclick="crearOrden()" class="w-full bg-green-600 text-white font-bold py-4 rounded-2xl shadow-lg hover:bg-green-700 transition-all">GENERAR GUÍA DIGITAL TRZ</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- VISTA FARMACIA -->
-            <div id="role-farmacia" class="hidden">
-                <h2 class="text-2xl font-bold mb-6">Módulo de Despacho</h2>
-                <div class="bg-white p-8 rounded-xl shadow-lg max-w-md">
-                    <h3 class="font-bold mb-4 text-gray-600">Crear Nueva Orden Digital</h3>
-                    <label class="text-xs font-bold">ID UNIDAD DESTINO:</label>
-                    <input id="dest-id" type="number" value="2" class="w-full border p-2 mb-4 rounded">
-                    <label class="text-xs font-bold">ID TRANSPORTISTA ASIGNADO:</label>
-                    <input id="trans-id" type="number" value="2" class="w-full border p-2 mb-6 rounded">
-                    <button onclick="crearOrden()" class="bg-green-600 text-white w-full py-3 rounded-lg font-bold shadow-md">GENERAR CÓDIGO TRZ</button>
+            <!-- SECCION TRANSPORTISTA / RECEPTOR -->
+            <div id="role-lista" class="hidden space-y-6">
+                <h2 id="lista-titulo" class="text-3xl font-bold text-gray-800">Cargamento en Proceso</h2>
+                <div id="contenedor-ordenes" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            </div>
+
+            <!-- SECCION GERENTE -->
+            <div id="role-gerente" class="hidden space-y-8">
+                <h2 class="text-3xl font-bold text-gray-800">Indicadores Clave (KPIs)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="bg-white p-8 rounded-3xl shadow-xl border-t-8 border-blue-600">
+                        <p class="text-gray-400 font-bold text-xs uppercase mb-2">Total Despachos</p>
+                        <p id="stat-total" class="text-6xl font-black text-gray-800">0</p>
+                    </div>
+                    <div class="bg-white p-8 rounded-3xl shadow-xl border-t-8 border-orange-500">
+                        <p class="text-gray-400 font-bold text-xs uppercase mb-2">Pedidos en Ruta</p>
+                        <p id="stat-ruta" class="text-6xl font-black text-gray-800">0</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- VISTA TRANSPORTISTA (NUEVA!) -->
-            <div id="role-transportista" class="hidden">
-                <h2 class="text-2xl font-bold mb-6 text-orange-600">Órdenes Asignadas</h2>
-                <div id="lista-transp" class="grid gap-4"></div>
-            </div>
-
-            <!-- VISTA RECEPTOR (NUEVA!) -->
-            <div id="role-receptor" class="hidden">
-                <h2 class="text-2xl font-bold mb-6 text-green-700">Confirmación de Recepción Digital</h2>
-                <div id="lista-receptor" class="grid gap-4"></div>
-            </div>
-
-        </div>
+        </main>
     </div>
 
     <script>
-        const API = "https://transporte-medicamento-isss.onrender.com/api";
+        const API = "https://transporte-medicamento-isss.onrender.com/api"; // CAMBIA POR TU URL
         let user = null;
 
         async function login() {
-    const emailInput = document.getElementById('email').value.trim();
-    const passwordInput = document.getElementById('pass').value;
-
-    try {
-        const res = await fetch(`${API}/login`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ email: emailInput, password: passwordInput })
-        });
-
-        const data = await res.json();
-
-        if (res.ok) {
-            user = data; // Guardamos los datos del usuario (Ana)
-            
-            // 1. Ocultar el Login y mostrar la App
-            document.getElementById('view-login').classList.add('hidden');
-            document.getElementById('view-app').classList.remove('hidden');
-            
-            // 2. Mostrar nombre en la barra superior
-            document.getElementById('user-info').innerText = `${user.nombre_completo} | ${user.nombre_rol}`;
-            
-            // 3. LOGICA DE ROLES (Asegúrate que coincidan con Supabase)
-            // Ponemos todo en MAYÚSCULAS para evitar errores de escritura
-            const rol = user.nombre_rol.toUpperCase();
-            console.log("Entrando con rol:", rol);
-
-            if (rol === 'GERENTE') {
-                document.getElementById('role-gerente').classList.remove('hidden');
-                cargarStats();
-            } else if (rol === 'FARMACIA') {
-                document.getElementById('role-farmacia').classList.remove('hidden');
-            } else if (rol === 'TRANSPORTISTA') {
-                document.getElementById('role-transportista').classList.remove('hidden');
-                cargarOrdenes();
-            } else if (rol === 'RECEPTOR') {
-                document.getElementById('role-receptor').classList.remove('hidden');
-                cargarOrdenes();
-            }
-            
-            alert("Acceso concedido: Bienvenido " + user.nombre_completo);
-
-        } else {
-            alert("Error: " + (data.error || "Credenciales incorrectas"));
+            const res = await fetch(`${API}/login`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email: document.getElementById('email').value, password: document.getElementById('pass').value })
+            });
+            if(res.ok) {
+                user = await res.json();
+                document.getElementById('view-login').classList.add('hidden');
+                document.getElementById('view-app').classList.remove('hidden');
+                document.getElementById('user-name').innerText = user.nombre_completo;
+                document.getElementById('user-role').innerText = user.nombre_rol;
+                
+                if(user.nombre_rol === 'FARMACIA') { cargarCatalogos(); document.getElementById('role-farmacia').classList.remove('hidden'); }
+                if(user.nombre_rol === 'TRANSPORTISTA' || user.nombre_rol === 'RECEPTOR') { 
+                    document.getElementById('role-lista').classList.remove('hidden'); 
+                    document.getElementById('lista-titulo').innerText = user.nombre_rol === 'TRANSPORTISTA' ? 'Mis Rutas Asignadas' : 'Pedidos por Recibir';
+                    cargarOrdenes(); 
+                }
+                if(user.nombre_rol === 'GERENTE') { document.getElementById('role-gerente').classList.remove('hidden'); cargarStats(); }
+            } else { alert("Error de acceso"); }
         }
-    } catch (err) {
-        console.error(err);
-        alert("Error de conexión: El servidor tardó mucho en responder.");
-    }
-}
+
+        async function cargarCatalogos() {
+            const res = await fetch(`${API}/catalogos`);
+            const data = await res.json();
+            document.getElementById('select-unidades').innerHTML = data.unidades.map(u => `<option value="${u.id}">${u.nombre}</option>`).join('');
+            document.getElementById('select-trans').innerHTML = data.transportistas.map(t => `<option value="${t.id}">${t.nombre_completo}</option>`).join('');
+        }
+
+        async function crearOrden() {
+            const res = await fetch(`${API}/ordenes`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    numero_pedido: document.getElementById('num-pedido').value,
+                    destino_id: document.getElementById('select-unidades').value,
+                    transportista_id: document.getElementById('select-trans').value,
+                    creador_id: user.id
+                })
+            });
+            const data = await res.json();
+            alert("¡ÉXITO! Guía Generada: " + data.codigo_trz);
+            document.getElementById('num-pedido').value = "";
+        }
+
         async function cargarOrdenes() {
-            const res = await fetch(`${API}/ordenes/${user.nombre_rol}/${user.id}`);
-            const ordenes = await res.json();
-            const container = user.nombre_rol === 'TRANSPORTISTA' ? 'lista-transp' : 'lista-receptor';
+            const res = await fetch(`${API}/ordenes/lista/${user.nombre_rol}/${user.id}`);
+            const data = await res.json();
             const btnColor = user.nombre_rol === 'TRANSPORTISTA' ? 'bg-orange-500' : 'bg-green-600';
-            const btnText = user.nombre_rol === 'TRANSPORTISTA' ? 'MARCAR: EN RUTA' : 'CONFIRMAR RECEPCIÓN';
+            const btnText = user.nombre_rol === 'TRANSPORTISTA' ? 'INICIAR RUTA' : 'CONFIRMAR ENTREGA';
             const nextEstado = user.nombre_rol === 'TRANSPORTISTA' ? 2 : 3;
 
-            document.getElementById(container).innerHTML = ordenes.map(o => `
-                <div class="bg-white p-6 rounded-lg shadow flex justify-between items-center border-l-4 border-gray-300">
-                    <div>
-                        <p class="text-xs font-bold text-gray-400">${o.codigo_trz}</p>
-                        <p class="font-bold text-lg">Estado: ${o.nombre_estado}</p>
+            document.getElementById('contenedor-ordenes').innerHTML = data.map(o => `
+                <div class="bg-white p-6 rounded-3xl shadow-lg border-l-8 border-blue-900">
+                    <div class="flex justify-between mb-4">
+                        <span class="text-xs font-black text-blue-900 bg-blue-50 px-3 py-1 rounded-full uppercase">${o.codigo_trz}</span>
+                        <span class="text-xs font-bold text-gray-400">PEDIDO: ${o.numero_pedido}</span>
                     </div>
-                    <button onclick="cambiarEstado(${o.id}, ${nextEstado})" class="${btnColor} text-white px-4 py-2 rounded-lg font-bold text-sm shadow">${btnText}</button>
+                    <p class="text-sm text-gray-500 font-bold uppercase mb-1">Destino:</p>
+                    <p class="font-black text-gray-800 mb-4">${o.unidad_nombre}</p>
+                    <button onclick="cambiarEstado(${o.id}, ${nextEstado})" class="w-full ${btnColor} text-white py-3 rounded-2xl font-bold shadow-md hover:opacity-90">${btnText}</button>
                 </div>
             `).join('');
         }
@@ -148,29 +161,15 @@
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ orden_id: id, nuevo_estado_id: nuevo })
             });
-            alert("Estado Actualizado Correctamente");
+            alert("Estado de pedido actualizado");
             cargarOrdenes();
         }
 
-        // Funciones previas (Estadísticas y Crear Orden)
         async function cargarStats() {
             const res = await fetch(`${API}/stats`);
             const data = await res.json();
             document.getElementById('stat-total').innerText = data.total;
-        }
-
-        async function crearOrden() {
-            const res = await fetch(`${API}/ordenes`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    destino_id: document.getElementById('dest-id').value,
-                    transportista_id: document.getElementById('trans-id').value,
-                    creador_id: user.id
-                })
-            });
-            const data = await res.json();
-            alert("ORDEN CREADA: " + data.codigo_trz);
+            document.getElementById('stat-ruta').innerText = data.en_ruta;
         }
     </script>
 </body>
